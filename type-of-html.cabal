@@ -40,8 +40,9 @@ library
                     , text
                     , bytestring
                     , ghc-prim
-                    , double-conversion
                     , containers
+  if !impl(ghcjs)
+     build-depends: double-conversion
 
 test-suite value
   type:               exitcode-stdio-1.0

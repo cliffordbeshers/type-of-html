@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE MagicHash                  #-}
+{-# LANGUAGE CPP                        #-}
 
 module Html.Convert
   ( Converted(..)
@@ -14,7 +15,9 @@ import Data.Word
 import Data.Proxy
 import Data.String
 import Data.Char (ord)
+#ifndef __GHCJS__
 import Data.Double.Conversion.ByteString
+#endif
 import Numeric.Natural
 import GHC.Exts (build)
 import GHC.TypeLits
@@ -91,9 +94,17 @@ instance Convert TL.Text         where {-# INLINE convert #-}; convert = Convert
 instance Convert Int             where {-# INLINE convert #-}; convert = Converted . B.intDec
 instance Convert Integer         where {-# INLINE convert #-}; convert = Converted . B.integerDec
 instance Convert Natural         where {-# INLINE convert #-}; convert = Converted . B.integerDec . fromIntegral
-instance Convert Float           where {-# INLINE convert #-}; convert = Converted . U.byteStringCopy . toShortest . realToFrac
-instance Convert Double          where {-# INLINE convert #-}; convert = Converted . U.byteStringCopy . toShortest
+instance Convert Float           where {-# INLINE convert #-}; convert = toShortest' . realToFrac
+instance Convert Double          where {-# INLINE convert #-}; convert = toShortest'
 instance Convert Word            where {-# INLINE convert #-}; convert = Converted . B.wordDec
+
+#ifdef __GHCJS__
+toShortest' :: Double -> Converted
+toShortest' = stringConv . show
+#else
+toShortest' :: Double -> Converted
+toShortest' = Converted . U.byteStringCopy . toShortest
+#endif
 
 {-# INLINE [0] stringConv #-}
 stringConv :: String -> Converted
