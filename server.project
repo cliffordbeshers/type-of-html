@@ -1,0 +1,3 @@
+packages: ./type-of-html.cabal
+
+compiler: ghc
